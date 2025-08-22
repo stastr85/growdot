@@ -1,0 +1,12 @@
+name = "ai-micro-landing"
+compatibility_date = "2025-08-22"
+
+# KV для лидов (замените ID на ваши)
+[[kv_namespaces]]
+binding = "LEADS"
+id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+preview_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+[vars]
+# Укажите модель, совместимую с ChatGPT для бенчмарка
+OPENAI_MODEL = "gpt-5o-mini"
