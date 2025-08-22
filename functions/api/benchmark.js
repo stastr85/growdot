@@ -27,7 +27,7 @@ export const onRequestPost = async ({ request, env }) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: env.OPENAI_MODEL || 'gpt-5o-mini',
+        model: env.OPENAI_MODEL || 'gpt-4o-mini',
         temperature: 0.4,
         max_tokens: 220,
         messages: [

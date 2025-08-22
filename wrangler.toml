@@ -4,9 +4,9 @@ compatibility_date = "2025-08-22"
 # KV для лидов (замените ID на ваши)
 [[kv_namespaces]]
 binding = "LEADS"
-id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-preview_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+id = "edcfed861fd9490a9251656d9e510551"
+preview_id = "c1216f79d36f4a72830cbc184bba88b7"
 
 [vars]
 # Укажите модель, совместимую с ChatGPT для бенчмарка
-OPENAI_MODEL = "gpt-5o-mini"
+OPENAI_MODEL = "gpt-4o-mini"
