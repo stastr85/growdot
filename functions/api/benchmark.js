@@ -11,14 +11,9 @@ export const onRequestPost = async ({ request, env }) => {
     }
 
     const system = [
-      'You are a senior business analyst specializing in competitive benchmarking.',
-      'Task: analyze the named company in the context of the Belarus market.',
-      'Structure your response in 4 sections:1. **Company Overview** — summarize the companys positioning, business model, and market presence.',
-'2. **Benchmark vs US Peers** — compare key metrics (e.g., margins, growth, cost structure) against US industry averages.',
-'3. **Strengths & Gaps** — highlight competitive advantages and areas for improvement.',
-'4. **Actionable Recommendations** — suggest 2–3 strategic steps the company could take to improve performance.',
-
-'Tone: professional, neutral, data-driven. Avoid disclaimers or speculation. Use 300–500 words.',
+      'You are a precise business analyst.',
+      'Task: benchmark the named company in the United States market.',
+      'Deliver 80–120 words, concise, neutral, no disclaimers.',
       'If the company is unknown, provide a generic sector-based benchmark.',
       'Cover: positioning, strengths, gaps vs US peers, and 1 actionable next step.'
     ].join(' ');
@@ -33,8 +28,8 @@ export const onRequestPost = async ({ request, env }) => {
       },
       body: JSON.stringify({
         model: env.OPENAI_MODEL || 'gpt-4o-mini',
-        temperature: 0.5,
-        max_tokens: 320,
+        temperature: 0.4,
+        max_tokens: 220,
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: user }
