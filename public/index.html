@@ -7,7 +7,8 @@
   <meta name="color-scheme" content="dark light" />
   <style>
     :root{--bg:#0b0d10;--fg:#eaf2f1;--muted:#9fb3b0;--accent:#28d3b0;--danger:#ff6b6b;}
-    *{box-sizing:border-box} html,body{height:100%} body{
+    *{box-sizing:border-box} html,body{height:100%}
+    body{
       margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
       color:var(--fg); background:var(--bg);
       background-image:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.65)),url("./hero.jpg");
@@ -15,9 +16,9 @@
     }
     .wrap{max-width:720px; margin:0 auto; padding:56px 20px 48px}
     header{margin:20px 0 28px}
-    h1{margin:0 0 8px; font-size:32px; line-height:1.15; letter-spacing:.2px}
+    h1{margin:0 0 8px; font-size:32px; line-height:1.15}
     p.sub{margin:0; color:var(--muted)}
-    .card{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px; backdrop-filter: blur(6px)}
+    .card{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:18px; backdrop-filter: blur(6px)}
     label{display:block; font-size:14px; color:var(--muted); margin:8px 0 6px}
     input[type="text"], input[type="email"]{
       width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.18);
@@ -34,6 +35,7 @@
     .err{color:var(--danger); font-size:14px; margin-top:8px}
     #result{display:none; margin-top:18px}
     #result h3{margin:0 0 8px 0}
+    #summary p{margin:0 0 10px}
     #emailBlock{display:none; margin-top:14px}
     footer{margin-top:28px; font-size:12px; color:var(--muted)}
     .mini{font-size:12px; color:var(--muted)}
@@ -43,12 +45,12 @@
   <div class="wrap">
     <header>
       <h1>Seal Profit Leaks and Outpace Your Competitors</h1>
-      <p class="sub">Enter your company name or link to get your instant AI benchmark. Then grab the detailed report by email.</p>
+      <p class="sub">Enter your company name to get your instant AI benchmark. Then grab the detailed report by email.</p>
     </header>
 
     <section class="card">
       <label for="company">Company name</label>
-      <input id="company" type="text" placeholder="e.g., Acme Corporation or acme.com" maxlength="80" autofocus />
+      <input id="company" type="text" placeholder="e.g., Acme Corporation" maxlength="80" autofocus />
       <div class="row">
         <button id="go">Benchmark</button>
         <span class="muted">Region: United States (US)</span>
@@ -57,7 +59,7 @@
 
       <div id="result" class="card">
         <h3>Quick benchmark</h3>
-        <div id="summary" class="mini"></div>
+        <div id="summary"></div>
 
         <div id="emailBlock">
           <label for="email" style="margin-top:10px">Get the detailed report by email</label>
@@ -70,13 +72,11 @@
       </div>
     </section>
 
-    <footer>
-      <div>By continuing you agree to receive a one‑off benchmark email. No spam.</div>
-    </footer>
+    <footer>By continuing you agree to receive a one‑off benchmark email. No spam.</footer>
   </div>
 
   <script>
-    const $ = (sel)=>document.querySelector(sel);
+    const $ = s => document.querySelector(s);
     const go = $('#go'), send = $('#send'), err = $('#err');
     const companyEl = $('#company'), result = $('#result'), summaryEl = $('#summary');
     const emailBlock = $('#emailBlock'), emailEl = $('#email'), emailMsg = $('#emailMsg');
@@ -91,30 +91,47 @@
       return json;
     }
 
-    go.addEventListener('click', async ()=>{
+    go.addEventListener('click', onBenchmark);
+    companyEl.addEventListener('keydown', e => { if(e.key==='Enter') onBenchmark(); });
+    emailEl.addEventListener('keydown', e => { if(e.key==='Enter') onSubmitEmail(); });
+    send.addEventListener('click', onSubmitEmail);
+
+    function escapeHTML(s){
+      return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    function formatWithSections(text){
+      const blocks = text.trim().split(/\n{2,}/).filter(Boolean);
+      if(blocks.length === 0){
+        return '<p>' + escapeHTML(text.trim()) + '</p>';
+      }
+      return blocks.map(block => {
+        const lines = block.split('\n').filter(Boolean);
+        const first = (lines.shift() || '').trim().replace(/^\*\*|\*\*$/g,'');
+        const rest = lines.join(' ').trim();
+        const title = escapeHTML(first || 'Summary');
+        const body = escapeHTML(rest);
+        return `<p><strong>${title}</strong><br>${body}</p>`;
+      }).join('');
+    }
+
+    async function onBenchmark(){
       err.textContent = ''; emailMsg.textContent = '';
       const company = companyEl.value.trim();
       if(company.length < 2){ err.textContent = 'Please enter a valid company name.'; return; }
       go.disabled = true; go.textContent = 'Benchmarking…';
       try{
         const { summary } = await post('/api/benchmark', { company, region:'US' });
+        // Преобразуем ответ модели в секции с подзаголовками
         summaryEl.innerHTML = formatWithSections(summary);
-        function formatWithSections(text){
-          return text
-            .split(/\n{2,}/) // делим по пустой строке между секциями
-            .map(block => {
-              const lines = block.split('\n');
-              const first = lines.shift().trim();
-              const rest = lines.join(' ').trim();
-              return `<p><strong>${first.replace(/^\*\*|\*\*$/g,'')}</strong><br>${rest}</p>`;
-    })
-    .join('');
- }
+        result.style.display = 'block';
+        emailBlock.style.display = 'block';
+        emailEl.focus();
       }catch(e){ err.textContent = e.message; }
       finally{ go.disabled = false; go.textContent = 'Benchmark'; }
-    });
+    }
 
-    send.addEventListener('click', async ()=>{
+    async function onSubmitEmail(){
       emailMsg.textContent = ''; err.textContent = '';
       const email = emailEl.value.trim(), company = companyEl.value.trim();
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ emailMsg.textContent = 'Please enter a valid email.'; return; }
@@ -124,7 +141,8 @@
         emailMsg.textContent = 'Thanks! We\'ll prepare your detailed report.';
       }catch(e){ emailMsg.textContent = e.message; }
       finally{ send.disabled = false; send.textContent = 'Submit'; }
-    });
+    }
   </script>
 </body>
 </html>
+```
