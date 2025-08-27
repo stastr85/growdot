@@ -98,10 +98,18 @@
       go.disabled = true; go.textContent = 'Benchmarking…';
       try{
         const { summary } = await post('/api/benchmark', { company, region:'US' });
-        summaryEl.textContent = summary;
-        result.style.display = 'block';
-        emailBlock.style.display = 'block';
-        emailEl.focus();
+        summaryEl.innerHTML = formatWithSections(summary);
+        function formatWithSections(text){
+          return text
+            .split(/\n{2,}/) // делим по пустой строке между секциями
+            .map(block => {
+              const lines = block.split('\n');
+              const first = lines.shift().trim();
+              const rest = lines.join(' ').trim();
+              return `<p><strong>${first.replace(/^\*\*|\*\*$/g,'')}</strong><br>${rest}</p>`;
+    })
+    .join('');
+ }
       }catch(e){ err.textContent = e.message; }
       finally{ go.disabled = false; go.textContent = 'Benchmark'; }
     });
