@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>US Company Benchmark</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    :root{--bg:#0b0d10;--fg:#eaf2f1;--muted:#9fb3b0;--accent:#28d3b0;--danger:#ff6b6b;}
+    *{box-sizing:border-box} html,body{height:100%} body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+      color:var(--fg); background:var(--bg);
+      background-image:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,.65)),url("./hero.jpg");
+      background-size:cover; background-position:center; background-attachment:fixed;
+    }
+    .wrap{max-width:720px; margin:0 auto; padding:56px 20px 48px}
+    header{margin:20px 0 28px}
+    h1{margin:0 0 8px; font-size:32px; line-height:1.15; letter-spacing:.2px}
+    p.sub{margin:0; color:var(--muted)}
+    .card{background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:18px; backdrop-filter: blur(6px)}
+    label{display:block; font-size:14px; color:var(--muted); margin:8px 0 6px}
+    input[type="text"], input[type="email"]{
+      width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.25); color:var(--fg); outline:none;
+    }
+    input::placeholder{color:#93a1a1}
+    .row{display:flex; gap:10px; align-items:center; margin-top:12px}
+    button{
+      appearance:none; border:none; border-radius:10px; padding:12px 16px; font-weight:600;
+      background:var(--accent); color:#06261f; cursor:pointer;
+    }
+    button[disabled]{opacity:.6; cursor:not-allowed}
+    .muted{color:var(--muted); font-size:13px}
+    .err{color:var(--danger); font-size:14px; margin-top:8px}
+    #result{display:none; margin-top:18px}
+    #result h3{margin:0 0 8px 0}
+    #emailBlock{display:none; margin-top:14px}
+    footer{margin-top:28px; font-size:12px; color:var(--muted)}
+    .mini{font-size:12px; color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Seal Profit Leaks and Outpace Your Competitors</h1>
+      <p class="sub">Enter your company name or link to get your instant AI benchmark. Then grab the detailed report by email.</p>
+    </header>
+
+    <section class="card">
+      <label for="company">Company name</label>
+      <input id="company" type="text" placeholder="e.g., Acme Corporation or acme.com" maxlength="80" autofocus />
+      <div class="row">
+        <button id="go">Benchmark</button>
+        <span class="muted">Region: United States (US)</span>
+      </div>
+      <div id="err" class="err" role="alert" aria-live="polite"></div>
+
+      <div id="result" class="card">
+        <h3>Quick benchmark</h3>
+        <div id="summary" class="mini"></div>
+
+        <div id="emailBlock">
+          <label for="email" style="margin-top:10px">Get the detailed report by email</label>
+          <div class="row">
+            <input id="email" type="email" placeholder="you@company.com" />
+            <button id="send">Submit</button>
+          </div>
+          <div id="emailMsg" class="mini" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div>By continuing you agree to receive a one‑off benchmark email. No spam.</div>
+    </footer>
+  </div>
+
+  <script>
+    const $ = (sel)=>document.querySelector(sel);
+    const go = $('#go'), send = $('#send'), err = $('#err');
+    const companyEl = $('#company'), result = $('#result'), summaryEl = $('#summary');
+    const emailBlock = $('#emailBlock'), emailEl = $('#email'), emailMsg = $('#emailMsg');
+
+    async function post(url, data){
+      const res = await fetch(url, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data)
+      });
+      const json = await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(json.error || ('HTTP '+res.status));
+      return json;
+    }
+
+    go.addEventListener('click', async ()=>{
+      err.textContent = ''; emailMsg.textContent = '';
+      const company = companyEl.value.trim();
+      if(company.length < 2){ err.textContent = 'Please enter a valid company name.'; return; }
+      go.disabled = true; go.textContent = 'Benchmarking…';
+      try{
+        const { summary } = await post('/api/benchmark', { company, region:'US' });
+        summaryEl.innerHTML = formatWithSections(summary);
+        function formatWithSections(text){
+          return text
+            .split(/\n{2,}/) // делим по пустой строке между секциями
+            .map(block => {
+              const lines = block.split('\n');
+              const first = lines.shift().trim();
+              const rest = lines.join(' ').trim();
+              return `<p><strong>${first.replace(/^\*\*|\*\*$/g,'')}</strong><br>${rest}</p>`;
+    })
+    .join('');
+ }
+      }catch(e){ err.textContent = e.message; }
+      finally{ go.disabled = false; go.textContent = 'Benchmark'; }
+    });
+
+    send.addEventListener('click', async ()=>{
+      emailMsg.textContent = ''; err.textContent = '';
+      const email = emailEl.value.trim(), company = companyEl.value.trim();
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ emailMsg.textContent = 'Please enter a valid email.'; return; }
+      send.disabled = true; send.textContent = 'Sending…';
+      try{
+        await post('/api/lead', { company, email, summary: summaryEl.textContent });
+        emailMsg.textContent = 'Thanks! We\'ll prepare your detailed report.';
+      }catch(e){ emailMsg.textContent = e.message; }
+      finally{ send.disabled = false; send.textContent = 'Submit'; }
+    });
+  </script>
+</body>
+</html>

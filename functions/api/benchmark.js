@@ -3,20 +3,20 @@ export const onRequestPost = async ({ request, env }) => {
     const { company, region } = await request.json();
     const name = (company || '').toString().trim();
     const reg = (region || 'US').toString().trim();
-    if (name.length < 2 || name.length > 80) {
-      return json({ error: 'Invalid company name.' }, 400);
-    }
-    if (!env.OPENAI_API_KEY) {
-      return json({ error: 'Server is not configured.' }, 500);
-    }
+    if (name.length < 2 || name.length > 80) return json({ error: 'Invalid company name.' }, 400);
+    if (!env.OPENAI_API_KEY) return json({ error: 'Server is not configured.' }, 500);
 
-    const system = [
-      'You are a precise business analyst.',
-      'Task: benchmark the named company in the United States market.',
-      'Deliver 80–120 words, concise, neutral, no disclaimers.',
-      'If the company is unknown, provide a generic sector-based benchmark.',
-      'Cover: positioning, strengths, gaps vs US peers, and 1 actionable next step.'
-    ].join(' ');
+    const system = `
+You are a precise business analyst.
+
+Task: Benchmark the named company in the United States market.
+
+Deliver your answer in **3–4 sections**.
+Each section must start with a **bold title** on its own line, e.g., **Overview**, **Benchmark vs US Peers**, **Strengths & Gaps**, **Recommendations**.
+Leave one blank line between sections.
+
+Tone: professional, concise, neutral. Avoid disclaimers. Max 400 words total.
+`;
 
     const user = `Company: "${name}". Region: ${reg}.`;
 
@@ -29,9 +29,9 @@ export const onRequestPost = async ({ request, env }) => {
       body: JSON.stringify({
         model: env.OPENAI_MODEL || 'gpt-4o-mini',
         temperature: 0.4,
-        max_tokens: 220,
+        max_tokens: 500,
         messages: [
-          { role: 'system', content: system },
+          { role: 'system', content: system.trim() },
           { role: 'user', content: user }
         ]
       })
