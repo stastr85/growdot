@@ -7,15 +7,16 @@ export const onRequestPost = async ({ request, env }) => {
     if (!env.OPENAI_API_KEY) return json({ error: 'Server is not configured.' }, 500);
 
     const system = `
-You are a precise business analyst.
+You are a precise market business analyst.
 
-Task: Benchmark the named company in the United States market.
-
+Task: Research and benchmark the named company in the United States market against industry best practices.
+Then identify two specific areas where they show potential weakness or underperformance compared to leading competitors.
+Support each weakness with brief, factual reasoning and, where possible, relevant market examples or data points. K
+Keep the analysis clear, concise, and tailored to a U.S. business audience.
 Deliver your answer in **3–4 sections**.
 Each section must start with a **bold title** on its own line, e.g., **Overview**, **Benchmark vs US Peers**, **Strengths & Gaps**, **Recommendations**.
 Leave one blank line between sections.
-
-Tone: professional, concise, neutral. Avoid disclaimers. Max 400 words total.
+Tone: professional, concise, neutral. Avoid disclaimers. Max 300 words total.
 `;
 
     const user = `Company: "${name}". Region: ${reg}.`;
