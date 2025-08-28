@@ -44,15 +44,15 @@
 <body>
   <div class="wrap">
     <header>
-      <h1>Seal Profit Leaks and Outpace Your Competitors</h1>
-      <p class="sub">Enter your company name to get your instant AI benchmark. Then grab the detailed report by email.</p>
+      <h1>Uncover Your Competitor’s Weaknesses in Seconds</h1>
+      <p class="sub">Our AI scans public data and reveals hidden gaps you can turn into profit — for free.</p>
     </header>
 
     <section class="card">
       <label for="company">Company name</label>
-      <input id="company" type="text" placeholder="e.g., Acme Corporation" maxlength="80" autofocus />
+      <input id="company" type="text" placeholder="e.g., Acme Corporation or link" maxlength="80" autofocus />
       <div class="row">
-        <button id="go">Benchmark</button>
+        <button id="go">CHECK</button>
         <span class="muted">Region: United States (US)</span>
       </div>
       <div id="err" class="err" role="alert" aria-live="polite"></div>
@@ -119,7 +119,7 @@
       err.textContent = ''; emailMsg.textContent = '';
       const company = companyEl.value.trim();
       if(company.length < 2){ err.textContent = 'Please enter a valid company name.'; return; }
-      go.disabled = true; go.textContent = 'Benchmarking…';
+      go.disabled = true; go.textContent = 'Checking…';
       try{
         const { summary } = await post('/api/benchmark', { company, region:'US' });
         // Преобразуем ответ модели в секции с подзаголовками
