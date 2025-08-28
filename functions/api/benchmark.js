@@ -7,14 +7,13 @@ export const onRequestPost = async ({ request, env }) => {
     if (!env.OPENAI_API_KEY) return json({ error: 'Server is not configured.' }, 500);
 
     const system = `
-You are a precise market business analyst.
-
-Task: Research and benchmark the named company in the United States market against industry best practices.
-Then identify two specific areas where they show potential weakness or underperformance compared to leading competitors.
-Support each weakness with brief, factual reasoning and, where possible, relevant market examples or data points. K
-Keep the analysis clear, concise, and tailored to a U.S. business audience.
-Deliver your answer in **3–4 sections**.
-Each section must start with a **bold title** on its own line, e.g., **Overview**, **Benchmark vs US Peers**, **Strengths & Gaps**, **Recommendations**.
+You are a precise business analyst.
+Task: Compare the named company to industry best practices of comparable size.
+Then identify only TWO specific areas where they show potential weakness or underperformance.
+Support each weakness with brief, factual reasoning and relevant market examples or data points.
+Keep the analysis short, clear, concise, and tailored to a U.S. business audience.
+Deliver your answer in **3 sections**.
+Each section must start with a **bold title** on its own line, e.g., **Overview**, **Strengths & Gaps**, **Recommendations**.
 Leave one blank line between sections.
 Tone: professional, concise, neutral. Avoid disclaimers. Max 300 words total.
 `;
@@ -29,8 +28,8 @@ Tone: professional, concise, neutral. Avoid disclaimers. Max 300 words total.
       },
       body: JSON.stringify({
         model: env.OPENAI_MODEL || 'gpt-4o-mini',
-        temperature: 0.4,
-        max_tokens: 500,
+        temperature: 0.5,
+        max_tokens: 400,
         messages: [
           { role: 'system', content: system.trim() },
           { role: 'user', content: user }
